@@ -11,11 +11,19 @@ void limpar_tela() {
 #endif
 }
 
+// Função para limpar a tela e exibir o cabeçalho com o nome da opção escolhida
+void exibir_cabecalho(const char *titulo) {
+    limpar_tela();
+    printf("===============================\n");
+    printf("  %s\n", titulo);
+    printf("===============================\n\n");
+}
+
 void salvar_no_arquivo(char operacao[], float valor1, float valor2, float resultado, int qtd_valores){
     FILE *arquivo = fopen("numero.txt", "a");
 
     if (arquivo == NULL) {
-        printf("erro ao abrir o arquivo numero.txt\n");
+        printf("Erro ao abrir o arquivo numero.txt\n");
         return;
     }
 
@@ -32,17 +40,17 @@ void soma(){
     float valor1, valor2, valornovo, resultado;
     int opcao;
 
-    printf("digitar primeiro valor: ");
+    printf("Digitar primeiro valor: ");
     scanf("%f", &valor1);
     printf("Digite o segundo valor: ");
     scanf("%f", &valor2);
 
     resultado = valor1 + valor2;
-    printf("resultado: %.2f\n", resultado);
+    printf("\nResultado: %.2f\n", resultado);
     salvar_no_arquivo("soma", valor1, valor2, resultado, 2);
 
     do {
-        printf("\nDigite 1 para somar mais um valor ou 0 pra voltar pro menu: ");
+        printf("\nDigite 1 para somar mais um valor ou 0 para voltar ao menu: ");
         scanf("%d", &opcao);
 
         if (opcao == 1) {
@@ -50,7 +58,7 @@ void soma(){
             scanf("%f", &valornovo);
             salvar_no_arquivo("soma", resultado, valornovo, resultado + valornovo, 2);
             resultado = resultado + valornovo;
-            printf("Resultado: %.2f\n", resultado);
+            printf("Resultado atualizado: %.2f\n", resultado);
         }
     } while (opcao != 0);
 }
@@ -59,25 +67,25 @@ void subtracao(){
     float valor1, valor2, valornovo, resultado;
     int opcao;
 
-    printf("digite o primeiro valor: ");
+    printf("Digite o primeiro valor: ");
     scanf("%f", &valor1);
-    printf("digite o segundo valor: ");
+    printf("Digite o segundo valor: ");
     scanf("%f", &valor2);
 
     resultado = valor1 - valor2;
-    printf("resultado: %.2f\n", resultado);
+    printf("\nResultado: %.2f\n", resultado);
     salvar_no_arquivo("subtracao", valor1, valor2, resultado, 2);
 
     do {
-        printf("\ndigite 1 para subtrair mais um valor do resultado ou 0 para voltar ao menu: ");
+        printf("\nDigite 1 para subtrair mais um valor do resultado ou 0 para voltar ao menu: ");
         scanf("%d", &opcao);
 
         if (opcao == 1) {
-            printf("digite o valor a subtrair: ");
+            printf("Digite o valor a subtrair: ");
             scanf("%f", &valornovo);
             salvar_no_arquivo("subtracao", resultado, valornovo, resultado - valornovo, 2);
             resultado = resultado - valornovo;
-            printf("resultado: %.2f\n", resultado);
+            printf("Resultado atualizado: %.2f\n", resultado);
         }
     } while (opcao != 0);
 }
@@ -85,37 +93,37 @@ void subtracao(){
 void exponenciacao(){
     float base, expoente, resultado;
 
-    printf("digite a base: ");
+    printf("Digite a base: ");
     scanf("%f", &base);
-    printf("digite o expoente: ");
+    printf("Digite o expoente: ");
     scanf("%f", &expoente);
 
     resultado = pow(base, expoente);
-    printf("resultado: %.2f\n", resultado);
+    printf("\nResultado: %.2f\n", resultado);
     salvar_no_arquivo("exponenciacao", base, expoente, resultado, 2);
 
     printf("\nPressione ENTER para voltar ao menu...");
-    getchar(); // captura o \n pendente do scanf
-    getchar(); // aguarda o enter do usuário
+    getchar(); // limpa buffer
+    getchar(); // aguarda enter
 }
 
 void raiz_quadrada(){
     float valor, resultado;
 
-    printf("digite o valor: ");
+    printf("Digite o valor: ");
     scanf("%f", &valor);
 
     if (valor < 0) {
-        printf("não existe raiz quadrada real de número negativo\n");
+        printf("\nNão existe raiz quadrada real de número negativo!\n");
     } else {
         resultado = sqrt(valor);
-        printf("resultado: %.2f\n", resultado);
+        printf("\nResultado: %.2f\n", resultado);
         salvar_no_arquivo("raiz quadrada", valor, 0, resultado, 1);
     }
 
     printf("\nPressione ENTER para voltar ao menu...");
-    getchar(); // captura o \n pendente do scanf
-    getchar(); // aguarda o enter do usuário
+    getchar(); // limpa buffer
+    getchar(); // aguarda enter
 }
 
 int main(){
@@ -123,45 +131,48 @@ int main(){
     int opcao;
 
     do {
-        limpar_tela(); // Limpa o terminal antes de exibir o menu
-        printf("===============================\n          CALCULADORA \n===============================\n");
+        exibir_cabecalho("CALCULADORA");
         printf("Escolha a operação desejada:\n");
-        printf("1 - Soma\n");
-        printf("2 - Subtração\n");
-        printf("3 - Multiplicação\n");
-        printf("4 - Divisão\n");
-        printf("5 - Exponenciação\n");
-        printf("6 - Raiz Quadrada\n");
-        printf("7 - soma de n valores\n");
-        printf("8 - Cálculo da Sequência de Fibonacci\n");
-        printf("9 - Área do círculo\n");
+        printf(" 1 - Soma\n");
+        printf(" 2 - Subtração\n");
+        printf(" 3 - Multiplicação\n");
+        printf(" 4 - Divisão\n");
+        printf(" 5 - Exponenciação\n");
+        printf(" 6 - Raiz Quadrada\n");
+        printf(" 7 - Soma de N valores\n");
+        printf(" 8 - Cálculo da Sequência de Fibonacci\n");
+        printf(" 9 - Área do círculo\n");
         printf("10 - Área do triângulo\n");
         printf("11 - Volume do cubo\n");
         printf("12 - Volume do cilindro\n");
-        printf("0 - Sair\n");
-        printf("Opção: ");
+        printf(" 0 - Sair\n\n");
+        printf("Opção desejada: ");
         scanf("%d", &opcao);
-
-        limpar_tela(); // Limpa a tela logo após escolher a opção
 
         switch (opcao) {
             case 1:
+                exibir_cabecalho("OPÇÃO 1: SOMA");
                 soma();
                 break;
             case 2:
+                exibir_cabecalho("OPÇÃO 2: SUBTRAÇÃO");
                 subtracao();
                 break;
             case 5:
+                exibir_cabecalho("OPÇÃO 5: EXPONENCIAÇÃO");
                 exponenciacao();
                 break;
             case 6:
+                exibir_cabecalho("OPÇÃO 6: RAIZ QUADRADA");
                 raiz_quadrada();
                 break;
             case 0:
-                printf("Saindo do programa...\n");
+                limpar_tela();
+                printf("Programa finalizado. Até logo!\n");
                 break;
             default:
-                printf("Opção inválida!\n");
+                exibir_cabecalho("OPÇÃO INVÁLIDA");
+                printf("A opção digitada não existe!\n");
                 printf("\nPressione ENTER para tentar novamente...");
                 getchar();
                 getchar();
