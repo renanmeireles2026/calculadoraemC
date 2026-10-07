@@ -90,6 +90,71 @@ void subtracao(){
     } while (opcao != 0);
 }
 
+void multiplicacao(){
+    float valor1, valor2, valornovo, resultado;
+    int opcao;
+
+    printf("Digite o primeiro valor: ");
+    scanf("%f", &valor1);
+    printf("Digite o segundo valor: ");
+    scanf("%f", &valor2);
+
+    resultado = valor1 * valor2;
+    printf("\nResultado: %.2f\n", resultado);
+    salvar_no_arquivo(3, "multiplicacao", valor1, valor2, resultado, 2);
+
+    do {
+        printf("\nDigite 1 para multiplicar o resultado por mais um valor ou 0 para voltar ao menu: ");
+        scanf("%d", &opcao);
+
+        if (opcao == 1) {
+            printf("Digite o valor a multiplicar: ");
+            scanf("%f", &valornovo);
+            salvar_no_arquivo(3, "multiplicacao", resultado, valornovo, resultado * valornovo, 2);
+            resultado = resultado * valornovo;
+            printf("Resultado atualizado: %.2f\n", resultado);
+        }
+    } while (opcao != 0);
+}
+
+void divisao(){
+    float valor1, valor2, valornovo, resultado;
+    int opcao;
+
+    printf("Digite o dividendo: ");
+    scanf("%f", &valor1);
+    printf("Digite o divisor: ");
+    scanf("%f", &valor2);
+
+    while (valor2 == 0) {
+        printf("Não é possível dividir por zero! Digite outro divisor: ");
+        scanf("%f", &valor2);
+    }
+
+    resultado = valor1 / valor2;
+    printf("\nResultado: %.2f\n", resultado);
+    salvar_no_arquivo(4, "divisao", valor1, valor2, resultado, 2);
+
+    do {
+        printf("\nDigite 1 para dividir o resultado por mais um valor ou 0 para voltar ao menu: ");
+        scanf("%d", &opcao);
+
+        if (opcao == 1) {
+            printf("Digite o divisor: ");
+            scanf("%f", &valornovo);
+
+            while (valornovo == 0) {
+                printf("Não é possível dividir por zero! Digite outro divisor: ");
+                scanf("%f", &valornovo);
+            }
+
+            salvar_no_arquivo(4, "divisao", resultado, valornovo, resultado / valornovo, 2);
+            resultado = resultado / valornovo;
+            printf("Resultado atualizado: %.2f\n", resultado);
+        }
+    } while (opcao != 0);
+}
+
 void exponenciacao(){
     float base, expoente, resultado;
 
@@ -157,6 +222,14 @@ int main(){
             case 2:
                 exibir_cabecalho("OPÇÃO 2: SUBTRAÇÃO");
                 subtracao();
+                break;
+            case 3:
+                exibir_cabecalho("OPÇÃO 3: MULTIPLICAÇÃO");
+                multiplicacao();
+                break;
+            case 4:
+                exibir_cabecalho("OPÇÃO 4: DIVISÃO");
+                divisao();
                 break;
             case 5:
                 exibir_cabecalho("OPÇÃO 5: EXPONENCIAÇÃO");
