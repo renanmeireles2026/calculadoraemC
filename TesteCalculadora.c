@@ -1,5 +1,15 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <math.h>
+#include <locale.h>
+
+void limpar_tela() {
+#ifdef _WIN32
+    system("cls");
+#else
+    system("clear");
+#endif
+}
 
 void salvar_no_arquivo(char operacao[], float valor1, float valor2, float resultado, int qtd_valores){
     FILE *arquivo = fopen("numero.txt", "a");
@@ -22,9 +32,9 @@ void soma(){
     float valor1, valor2, valornovo, resultado;
     int opcao;
 
-    printf("digitar primeiro valor:");
+    printf("digitar primeiro valor: ");
     scanf("%f", &valor1);
-    printf("Digite o segundo valor:");
+    printf("Digite o segundo valor: ");
     scanf("%f", &valor2);
 
     resultado = valor1 + valor2;
@@ -32,7 +42,7 @@ void soma(){
     salvar_no_arquivo("soma", valor1, valor2, resultado, 2);
 
     do {
-        printf("Digite 1 para somar mais um valor ou 0 pra voltar pro menu: ");
+        printf("\nDigite 1 para somar mais um valor ou 0 pra voltar pro menu: ");
         scanf("%d", &opcao);
 
         if (opcao == 1) {
@@ -49,9 +59,9 @@ void subtracao(){
     float valor1, valor2, valornovo, resultado;
     int opcao;
 
-    printf("digite o primeiro valor:");
+    printf("digite o primeiro valor: ");
     scanf("%f", &valor1);
-    printf("digite o segundo valor:");
+    printf("digite o segundo valor: ");
     scanf("%f", &valor2);
 
     resultado = valor1 - valor2;
@@ -59,7 +69,7 @@ void subtracao(){
     salvar_no_arquivo("subtracao", valor1, valor2, resultado, 2);
 
     do {
-        printf("digite 1 para subtrair mais um valor do resultado ou 0 para voltar ao menu");
+        printf("\ndigite 1 para subtrair mais um valor do resultado ou 0 para voltar ao menu: ");
         scanf("%d", &opcao);
 
         if (opcao == 1) {
@@ -75,36 +85,45 @@ void subtracao(){
 void exponenciacao(){
     float base, expoente, resultado;
 
-    printf("digite a base:");
+    printf("digite a base: ");
     scanf("%f", &base);
-    printf("digite o expoente:");
+    printf("digite o expoente: ");
     scanf("%f", &expoente);
 
     resultado = pow(base, expoente);
     printf("resultado: %.2f\n", resultado);
     salvar_no_arquivo("exponenciacao", base, expoente, resultado, 2);
+
+    printf("\nPressione ENTER para voltar ao menu...");
+    getchar(); // captura o \n pendente do scanf
+    getchar(); // aguarda o enter do usuário
 }
 
 void raiz_quadrada(){
     float valor, resultado;
 
-    printf("digite o valor:");
+    printf("digite o valor: ");
     scanf("%f", &valor);
 
     if (valor < 0) {
         printf("não existe raiz quadrada real de número negativo\n");
-        return;
+    } else {
+        resultado = sqrt(valor);
+        printf("resultado: %.2f\n", resultado);
+        salvar_no_arquivo("raiz quadrada", valor, 0, resultado, 1);
     }
 
-    resultado = sqrt(valor);
-    printf("resultado: %.2f\n", resultado);
-    salvar_no_arquivo("raiz quadrada", valor, 0, resultado, 1);
+    printf("\nPressione ENTER para voltar ao menu...");
+    getchar(); // captura o \n pendente do scanf
+    getchar(); // aguarda o enter do usuário
 }
 
 int main(){
+    setlocale(LC_ALL, "Portuguese");
     int opcao;
 
     do {
+        limpar_tela(); // Limpa o terminal antes de exibir o menu
         printf("===============================\n          CALCULADORA \n===============================\n");
         printf("Escolha a operação desejada:\n");
         printf("1 - Soma\n");
@@ -120,7 +139,10 @@ int main(){
         printf("11 - Volume do cubo\n");
         printf("12 - Volume do cilindro\n");
         printf("0 - Sair\n");
+        printf("Opção: ");
         scanf("%d", &opcao);
+
+        limpar_tela(); // Limpa a tela logo após escolher a opção
 
         switch (opcao) {
             case 1:
@@ -136,9 +158,13 @@ int main(){
                 raiz_quadrada();
                 break;
             case 0:
+                printf("Saindo do programa...\n");
                 break;
             default:
-                printf("nao existe");
+                printf("Opção inválida!\n");
+                printf("\nPressione ENTER para tentar novamente...");
+                getchar();
+                getchar();
                 break;
         }
     } while (opcao != 0);
