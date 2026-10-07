@@ -1,18 +1,59 @@
-//façam funcionar em linux e IOS
 #include <stdio.h>
 #include <stdlib.h>
-#include <conio.h>
-#include <windows.h>
+#include <unistd.h>     // Substitui o Sleep (usando usleep)
+#include <termios.h>    // Necessário para manipular o terminal (substitui conio.h)
+#include <fcntl.h>      // Necessário para leitura não-bloqueante do teclado
 
 #define TOTAL_OPCOES 13
 
-// Códigos das teclas do teclado no Windows
-#define TECLA_CIMA 72
-#define TECLA_BAIXO 80
-#define TECLA_ENTER 13
+// Códigos das teclas de seta e enter no padrão POSIX/ANSI
+#define TECLA_CIMA 65
+#define TECLA_BAIXO 66
+#define TECLA_ENTER 10
 
 void limparTela() {
-    system("cls");
+    // Sequência de escape ANSI para limpar a tela e resetar o cursor (mais rápido e seguro)
+    printf("\e[1H\e[2J");
+    fflush(stdout);
+}
+
+// Função equivalente ao _kbhit() do Windows para Linux/iOS
+int kbhit(void) {
+    struct termios oldt, newt;
+    int ch;
+    int oldf;
+
+    tcgetattr(STDIN_FILENO, &oldt);
+    newt = oldt;
+    newt.c_lflag &= ~(ICANON | ECHO);
+    tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+    oldf = fcntl(STDIN_FILENO, F_GETFL, 0);
+    fcntl(STDIN_FILENO, F_SETFL, oldf | O_NONBLOCK);
+
+    ch = getchar();
+
+    tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
+    fcntl(STDIN_FILENO, F_SETFL, oldf);
+
+    if(ch != EOF) {
+        ungetc(ch, stdin);
+        return 1;
+    }
+
+    return 0;
+}
+
+// Função equivalente ao _getch() do Windows para Linux/iOS
+int getch(void) {
+    struct termios oldt, newt;
+    int ch;
+    tcgetattr(STDIN_FILENO, &oldt);
+    newt = oldt;
+    newt.c_lflag &= ~(ICANON | ECHO);
+    tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+    ch = getchar();
+    tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
+    return ch;
 }
 
 void soma() {
@@ -22,20 +63,20 @@ void soma() {
 
     printf("--- OPERAÇÃO DE SOMA ---\n");
     printf("Digite o primeiro valor: ");
-    scanf("%lf", &valor1);
+    if (scanf("%lf", &valor1) != 1) return;
     printf("Digite o segundo valor: ");
-    scanf("%lf", &valor2);
+    if (scanf("%lf", &valor2) != 1) return;
 
     resultado = valor1 + valor2;
     printf("Resultado: %.2f\n", resultado);
 
     do {
         printf("\nDigite 1 para somar mais um valor ou 0 para voltar ao menu: ");
-        scanf("%d", &opcao);
+        if (scanf("%d", &opcao) != 1) opcao = 0;
 
         if (opcao == 1) {
             printf("Digite o valor a somar: ");
-            scanf("%lf", &valornovo);
+            if (scanf("%lf", &valornovo) != 1) continue;
             resultado = resultado + valornovo;
             printf("Resultado parcial: %.2f\n", resultado);
         }
@@ -49,20 +90,20 @@ void subtracao() {
 
     printf("--- OPERAÇÃO DE SUBTRAÇÃO ---\n");
     printf("Digite o primeiro valor: ");
-    scanf("%lf", &valor1);
+    if (scanf("%lf", &valor1) != 1) return;
     printf("Digite o segundo valor: ");
-    scanf("%lf", &valor2);
+    if (scanf("%lf", &valor2) != 1) return;
 
     resultado = valor1 - valor2;
     printf("Resultado: %.2f\n", resultado);
 
     do {
         printf("\nDigite 1 para subtrair mais um valor ou 0 para voltar ao menu: ");
-        scanf("%d", &opcao);
+        if (scanf("%d", &opcao) != 1) opcao = 0;
 
         if (opcao == 1) {
             printf("Digite o valor a subtrair: ");
-            scanf("%lf", &valornovo);
+            if (scanf("%lf", &valornovo) != 1) continue;
             resultado = resultado - valornovo;
             printf("Resultado parcial: %.2f\n", resultado);
         }
@@ -70,8 +111,7 @@ void subtracao() {
 }
 
 int main() {
-    // Configura o terminal para aceitar acentuação/caracteres UTF-8 no Windows
-    SetConsoleOutputCP(65001);
+    // Linux e iOS já usam UTF-8 nativamente no terminal, SetConsoleOutputCP não é necessário.
 
     int selecao = 0;
     int tecla;
@@ -94,7 +134,6 @@ int main() {
     };
 
     while (1) {
-        // Redesenha a tela
         limparTela();
 
         printf("===============================\n          CALCULADORA \n===============================\n");
@@ -102,7 +141,6 @@ int main() {
 
         for (int i = 0; i < TOTAL_OPCOES; i++) {
             if (i == selecao) {
-                // Se for a opção selecionada, alterna o caractere para criar o efeito piscando
                 if (piscando) {
                     printf("  [>] %s <\n", opcoes[i]);
                 } else {
@@ -113,27 +151,28 @@ int main() {
             }
         }
 
-        // Verifica se há alguma tecla pressionada no teclado sem interromper o loop
-        if (_kbhit()) {
-            tecla = _getch();
+        // Verifica se há alguma tecla pressionada
+        if (kbhit()) {
+            tecla = getch();
 
-            // Teclas de seta no Windows retornam um caractere nulo (0 ou 224) primeiro
-            if (tecla == 0 || tecla == 224) {
-                tecla = _getch(); // Lê o segundo código real da tecla
+            // No Linux/iOS, as setas enviam uma sequência de escape de 3 caracteres: 27, depois 91, e o código final
+            if (tecla == 27) { 
+                getch(); // Ignora o caractere '[' (91)
+                tecla = getch(); // Pega o código real da seta
+                
                 if (tecla == TECLA_CIMA) {
                     selecao--;
-                    if (selecao < 0) selecao = TOTAL_OPCOES - 1; // Volta ao final se passar do topo
+                    if (selecao < 0) selecao = TOTAL_OPCOES - 1;
                 } else if (tecla == TECLA_BAIXO) {
                     selecao++;
-                    if (selecao >= TOTAL_OPCOES) selecao = 0; // Volta ao topo se passar do final
+                    if (selecao >= TOTAL_OPCOES) selecao = 0;
                 }
             } else if (tecla == TECLA_ENTER) {
-                // Ações do menu baseadas na seleção do usuário
                 if (selecao == 0) {
                     soma();
                 } else if (selecao == 1) {
                     subtracao();
-                } else if (selecao == TOTAL_OPCOES - 1) { // Posição do "Sair"
+                } else if (selecao == TOTAL_OPCOES - 1) {
                     limparTela();
                     printf("Encerrando a calculadora...\n");
                     break;
@@ -141,13 +180,13 @@ int main() {
                     limparTela();
                     printf("Opção \"%s\" ainda não implementada.\n", opcoes[selecao]);
                     printf("Pressione qualquer tecla para voltar ao menu...");
-                    _getch();
+                    getch();
                 }
             }
         }
 
-        // Altera o estado do marcador a cada 200 milissegundos (efeito de piscar)
-        Sleep(200);
+        // usleep usa microssegundos (200ms = 200.000 microssegundos)
+        usleep(200000);
         piscando = !piscando;
     }
 
