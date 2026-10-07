@@ -19,7 +19,7 @@ void exibir_cabecalho(const char *titulo) {
     printf("===============================\n\n");
 }
 
-void salvar_no_arquivo(char operacao[], float valor1, float valor2, float resultado, int qtd_valores){
+void salvar_no_arquivo(int opcao, char operacao[], float valor1, float valor2, float resultado, int qtd_valores){
     FILE *arquivo = fopen("numero.txt", "a");
 
     if (arquivo == NULL) {
@@ -28,9 +28,9 @@ void salvar_no_arquivo(char operacao[], float valor1, float valor2, float result
     }
 
     if (qtd_valores == 1) {
-        fprintf(arquivo, "Operacao: %s | Numero: %.2f | Resultado: %.2f\n", operacao, valor1, resultado);
+        fprintf(arquivo, "Opcao: %d - %s | Numero: %.2f | Resultado: %.2f\n", opcao, operacao, valor1, resultado);
     } else {
-        fprintf(arquivo, "Operacao: %s | Numeros: %.2f e %.2f | Resultado: %.2f\n", operacao, valor1, valor2, resultado);
+        fprintf(arquivo, "Opcao: %d - %s | Numeros: %.2f e %.2f | Resultado: %.2f\n", opcao, operacao, valor1, valor2, resultado);
     }
 
     fclose(arquivo);
@@ -47,7 +47,7 @@ void soma(){
 
     resultado = valor1 + valor2;
     printf("\nResultado: %.2f\n", resultado);
-    salvar_no_arquivo("soma", valor1, valor2, resultado, 2);
+    salvar_no_arquivo(1, "soma", valor1, valor2, resultado, 2);
 
     do {
         printf("\nDigite 1 para somar mais um valor ou 0 para voltar ao menu: ");
@@ -56,7 +56,7 @@ void soma(){
         if (opcao == 1) {
             printf("Digite o valor a somar: ");
             scanf("%f", &valornovo);
-            salvar_no_arquivo("soma", resultado, valornovo, resultado + valornovo, 2);
+            salvar_no_arquivo(1, "soma", resultado, valornovo, resultado + valornovo, 2);
             resultado = resultado + valornovo;
             printf("Resultado atualizado: %.2f\n", resultado);
         }
@@ -74,7 +74,7 @@ void subtracao(){
 
     resultado = valor1 - valor2;
     printf("\nResultado: %.2f\n", resultado);
-    salvar_no_arquivo("subtracao", valor1, valor2, resultado, 2);
+    salvar_no_arquivo(2, "subtracao", valor1, valor2, resultado, 2);
 
     do {
         printf("\nDigite 1 para subtrair mais um valor do resultado ou 0 para voltar ao menu: ");
@@ -83,7 +83,7 @@ void subtracao(){
         if (opcao == 1) {
             printf("Digite o valor a subtrair: ");
             scanf("%f", &valornovo);
-            salvar_no_arquivo("subtracao", resultado, valornovo, resultado - valornovo, 2);
+            salvar_no_arquivo(2, "subtracao", resultado, valornovo, resultado - valornovo, 2);
             resultado = resultado - valornovo;
             printf("Resultado atualizado: %.2f\n", resultado);
         }
@@ -100,7 +100,7 @@ void exponenciacao(){
 
     resultado = pow(base, expoente);
     printf("\nResultado: %.2f\n", resultado);
-    salvar_no_arquivo("exponenciacao", base, expoente, resultado, 2);
+    salvar_no_arquivo(5, "exponenciacao", base, expoente, resultado, 2);
 
     printf("\nPressione ENTER para voltar ao menu...");
     getchar(); // limpa buffer
@@ -118,7 +118,7 @@ void raiz_quadrada(){
     } else {
         resultado = sqrt(valor);
         printf("\nResultado: %.2f\n", resultado);
-        salvar_no_arquivo("raiz quadrada", valor, 0, resultado, 1);
+        salvar_no_arquivo(6, "raiz quadrada", valor, 0, resultado, 1);
     }
 
     printf("\nPressione ENTER para voltar ao menu...");
