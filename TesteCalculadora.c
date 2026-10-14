@@ -3,6 +3,75 @@
 #include <math.h>
 #include <locale.h>
 
+// Nó da lista simplesmente encadeada que guarda cada multiplicação realizada
+typedef struct nomultiplicacao {
+    float valor1;
+    float valor2;
+    float resultado;
+    struct nomultiplicacao *proximo;
+} nomultiplicacao;
+
+// Início da lista de multiplicações (vazia no começo)
+nomultiplicacao *lista_multiplicacoes = NULL;
+
+// Cria um nó com a operação e o resultado e o insere no final da lista,
+// mantendo a ordem em que os cálculos foram realizados
+void inserir_multiplicacao(float valor1, float valor2, float resultado) {
+    nomultiplicacao *novo = (nomultiplicacao *) malloc(sizeof(nomultiplicacao));
+
+    if (novo == NULL) {
+        printf("Erro ao alocar memória para o histórico!\n");
+        return;
+    }
+
+    novo->valor1 = valor1;
+    novo->valor2 = valor2;
+    novo->resultado = resultado;
+    novo->proximo = NULL;
+
+    if (lista_multiplicacoes == NULL) {
+        lista_multiplicacoes = novo;
+    } else {
+        nomultiplicacao *atual = lista_multiplicacoes;
+        while (atual->proximo != NULL) {
+            atual = atual->proximo;
+        }
+        atual->proximo = novo;
+    }
+}
+
+// Percorre a lista e apresenta todas as multiplicações realizadas
+void listar_multiplicacoes() {
+    nomultiplicacao *atual = lista_multiplicacoes;
+    int contador = 1;
+
+    if (atual == NULL) {
+        printf("Nenhuma multiplicação foi realizada ainda.\n");
+    } else {
+        while (atual != NULL) {
+            printf("%d) %.2f x %.2f = %.2f\n", contador, atual->valor1, atual->valor2, atual->resultado);
+            atual = atual->proximo;
+            contador++;
+        }
+    }
+
+    printf("\nPressione ENTER para voltar ao menu...");
+    getchar(); // limpa buffer
+    getchar(); // aguarda enter
+}
+
+// Libera a memória de todos os nós da lista
+void liberar_multiplicacoes() {
+    nomultiplicacao *atual = lista_multiplicacoes;
+
+    while (atual != NULL) {
+        nomultiplicacao *proximo = atual->proximo;
+        free(atual);
+        atual = proximo;
+    }
+    lista_multiplicacoes = NULL;
+}
+
 void limpar_tela() {
 #ifdef _WIN32
     system("cls");
@@ -102,6 +171,7 @@ void multiplicacao(){
     resultado = valor1 * valor2;
     printf("\nResultado: %.2f\n", resultado);
     salvar_no_arquivo(3, "multiplicacao", valor1, valor2, resultado, 2);
+    inserir_multiplicacao(valor1, valor2, resultado);
 
     do {
         printf("\nDigite 1 para multiplicar o resultado por mais um valor ou 0 para voltar ao menu: ");
@@ -111,6 +181,7 @@ void multiplicacao(){
             printf("Digite o valor a multiplicar: ");
             scanf("%f", &valornovo);
             salvar_no_arquivo(3, "multiplicacao", resultado, valornovo, resultado * valornovo, 2);
+            inserir_multiplicacao(resultado, valornovo, resultado * valornovo);
             resultado = resultado * valornovo;
             printf("Resultado atualizado: %.2f\n", resultado);
         }
@@ -210,6 +281,7 @@ int main(){
         printf("10 - Área do triângulo\n");
         printf("11 - Volume do cubo\n");
         printf("12 - Volume do cilindro\n");
+        printf("13 - Listar multiplicações\n");
         printf(" 0 - Sair\n\n");
         printf("Opção desejada: ");
         scanf("%d", &opcao);
@@ -239,7 +311,12 @@ int main(){
                 exibir_cabecalho("OPÇÃO 6: RAIZ QUADRADA");
                 raiz_quadrada();
                 break;
+            case 13:
+                exibir_cabecalho("OPÇÃO 13: LISTAR MULTIPLICAÇÕES");
+                listar_multiplicacoes();
+                break;
             case 0:
+                liberar_multiplicacoes();
                 limpar_tela();
                 printf("Programa finalizado. Até logo!\n");
                 break;
