@@ -226,21 +226,52 @@ void divisao(){
     } while (opcao != 0);
 }
 
+// Função recursiva: base^expoente = base * base^(expoente - 1), com base^0 = 1
+double potencia(double base, int expoente) {
+    if (expoente == 0) {
+        return 1;
+    }
+    return base * potencia(base, expoente - 1);
+}
+
 void exponenciacao(){
-    float base, expoente, resultado;
+    double base, resultado;
+    int expoente, lido, opcao;
+    FILE *arquivo;
 
-    printf("Digite a base: ");
-    scanf("%f", &base);
-    printf("Digite o expoente: ");
-    scanf("%f", &expoente);
+    do {
+        printf("Digite a base: ");
+        while (scanf("%lf", &base) != 1) {
+            while (getchar() != '\n'); // descarta a entrada inválida
+            printf("Base inválida! Digite um número: ");
+        }
 
-    resultado = pow(base, expoente);
-    printf("\nResultado: %.2f\n", resultado);
-    salvar_no_arquivo(5, "exponenciacao", base, expoente, resultado, 2);
+        printf("Digite o expoente (inteiro maior ou igual a 0): ");
+        lido = scanf("%d", &expoente);
+        while (lido != 1 || expoente < 0) {
+            if (lido != 1) {
+                while (getchar() != '\n'); // descarta a entrada inválida
+            }
+            printf("Expoente inválido! O expoente deve ser um inteiro maior ou igual a 0.\n");
+            printf("Digite o expoente novamente: ");
+            lido = scanf("%d", &expoente);
+        }
 
-    printf("\nPressione ENTER para voltar ao menu...");
-    getchar(); // limpa buffer
-    getchar(); // aguarda enter
+        resultado = potencia(base, expoente);
+        printf("\n%.2f ^ %d = %.2f\n", base, expoente, resultado);
+
+        arquivo = fopen("numero.txt", "a");
+        if (arquivo == NULL) {
+            printf("Erro ao abrir o arquivo numero.txt\n");
+        } else {
+            fprintf(arquivo, "%.2f ^ %d = %.2f\n", base, expoente, resultado);
+            fclose(arquivo);
+        }
+
+        printf("\nDigite 1 para calcular outra potência ou 0 para voltar ao menu: ");
+        scanf("%d", &opcao);
+        printf("\n");
+    } while (opcao != 0);
 }
 
 void raiz_quadrada(){
