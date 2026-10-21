@@ -3,6 +3,10 @@
 #include <math.h>
 #include <locale.h>
 
+// Maior posição aceita no Fibonacci recursivo: o número de chamadas cresce
+// de forma exponencial, então valores muito grandes deixariam o programa lento
+#define LIMITE_FIBONACCI 35
+
 // Nó da lista simplesmente encadeada que guarda cada multiplicação realizada
 typedef struct nomultiplicacao {
     float valor1;
@@ -78,6 +82,19 @@ void limpar_tela() {
 #else
     system("clear");
 #endif
+}
+
+// Descarta o que sobrou na linha de entrada para não atrapalhar a próxima leitura.
+// Retorna 1 se só havia espaços até o fim da linha e 0 se havia mais caracteres
+// (por exemplo, o ".5" de "2.5" quando o programa esperava um inteiro).
+int limpar_buffer() {
+    int c, so_espacos = 1;
+    while ((c = getchar()) != '\n' && c != EOF) {
+        if (c != ' ' && c != '\t' && c != '\r') {
+            so_espacos = 0;
+        }
+    }
+    return so_espacos;
 }
 
 // Função para limpar a tela e exibir o cabeçalho com o nome da opção escolhida
@@ -226,12 +243,15 @@ void divisao(){
     } while (opcao != 0);
 }
 
-// Função recursiva: base^expoente = base * base^(expoente - 1), com base^0 = 1
+// Função recursiva de potenciação (expoente deve ser inteiro e >= 0)
+//   Caso-base:     base^0 = 1
+//   Caso recursivo: base^expoente = base * base^(expoente - 1)
+// Cada chamada reduz o expoente em 1, então a recursão sempre chega ao caso-base.
 double potencia(double base, int expoente) {
-    if (expoente == 0) {
+    if (expoente == 0) {            // caso-base: qualquer número elevado a 0 vale 1
         return 1;
     }
-    return base * potencia(base, expoente - 1);
+    return base * potencia(base, expoente - 1);   // caso recursivo
 }
 
 void exponenciacao(){
@@ -241,35 +261,57 @@ void exponenciacao(){
 
     do {
         printf("Digite a base: ");
-        while (scanf("%lf", &base) != 1) {
-            while (getchar() != '\n'); // descarta a entrada inválida
+        lido = scanf("%lf", &base);
+        if (!limpar_buffer() && lido == 1) {
+            lido = 0;               // sobrou texto na linha (ex.: "2abc"): entrada inválida
+        }
+        while (lido != 1) {
+            if (lido == EOF) {
+                return;             // entrada encerrada: volta ao menu
+            }
             printf("Base inválida! Digite um número: ");
+            lido = scanf("%lf", &base);
+            if (!limpar_buffer() && lido == 1) {
+                lido = 0;
+            }
         }
 
+        // Validação do expoente: precisa ser um inteiro maior ou igual a 0
         printf("Digite o expoente (inteiro maior ou igual a 0): ");
         lido = scanf("%d", &expoente);
+        if (!limpar_buffer() && lido == 1) {
+            lido = 0;               // ex.: "2.5" não é um inteiro
+        }
         while (lido != 1 || expoente < 0) {
-            if (lido != 1) {
-                while (getchar() != '\n'); // descarta a entrada inválida
+            if (lido == EOF) {
+                return;
             }
             printf("Expoente inválido! O expoente deve ser um inteiro maior ou igual a 0.\n");
             printf("Digite o expoente novamente: ");
             lido = scanf("%d", &expoente);
+            if (!limpar_buffer() && lido == 1) {
+                lido = 0;
+            }
         }
 
         resultado = potencia(base, expoente);
-        printf("\n%.2f ^ %d = %.2f\n", base, expoente, resultado);
+
+        // %.10g mostra 2 em vez de 2.00 e 8 em vez de 8.00 (formato: 2 ^ 3 = 8)
+        printf("\n%.10g ^ %d = %.10g\n", base, expoente, resultado);
 
         arquivo = fopen("numero.txt", "a");
         if (arquivo == NULL) {
             printf("Erro ao abrir o arquivo numero.txt\n");
         } else {
-            fprintf(arquivo, "%.2f ^ %d = %.2f\n", base, expoente, resultado);
+            fprintf(arquivo, "%.10g ^ %d = %.10g\n", base, expoente, resultado);
             fclose(arquivo);
         }
 
         printf("\nDigite 1 para calcular outra potência ou 0 para voltar ao menu: ");
-        scanf("%d", &opcao);
+        if (scanf("%d", &opcao) != 1) {
+            opcao = 0;              // entrada inválida ou encerrada: volta ao menu
+        }
+        limpar_buffer();
         printf("\n");
     } while (opcao != 0);
 }
@@ -291,6 +333,67 @@ void raiz_quadrada(){
     printf("\nPressione ENTER para voltar ao menu...");
     getchar(); // limpa buffer
     getchar(); // aguarda enter
+}
+
+// Retorna o n-ésimo número da sequência de Fibonacci (0, 1, 1, 2, 3, 5, 8, ...)
+//   Caso-base:     fibonacci(0) = 0  e  fibonacci(1) = 1
+//   Caso recursivo: fibonacci(n) = fibonacci(n - 1) + fibonacci(n - 2), para n >= 2
+// Observação: cada chamada com n >= 2 gera duas novas chamadas, por isso o
+// custo cresce de forma exponencial (as mesmas posições são recalculadas várias vezes).
+long long fibonacci(int n) {
+    if (n == 0) {                   // caso-base 1
+        return 0;
+    }
+    if (n == 1) {                   // caso-base 2
+        return 1;
+    }
+    return fibonacci(n - 1) + fibonacci(n - 2);   // caso recursivo
+}
+
+// Opção 8 do menu: lê a posição n, mostra a sequência até n e o valor de Fibonacci(n)
+void calcular_fibonacci(){
+    int n, lido, i;
+    long long resultado;
+    FILE *arquivo;
+
+    printf("Digite a posição n (inteiro entre 0 e %d): ", LIMITE_FIBONACCI);
+    lido = scanf("%d", &n);
+    if (!limpar_buffer() && lido == 1) {
+        lido = 0;
+    }
+    while (lido != 1 || n < 0 || n > LIMITE_FIBONACCI) {
+        if (lido == EOF) {
+            return;
+        }
+        printf("Valor inválido! Digite um inteiro entre 0 e %d: ", LIMITE_FIBONACCI);
+        lido = scanf("%d", &n);
+        if (!limpar_buffer() && lido == 1) {
+            lido = 0;
+        }
+    }
+
+    // Mostra os termos de Fibonacci(0) até Fibonacci(n)
+    printf("\nSequência: ");
+    for (i = 0; i <= n; i++) {
+        printf("%lld", fibonacci(i));
+        if (i < n) {
+            printf(", ");
+        }
+    }
+
+    resultado = fibonacci(n);
+    printf("\n\nFibonacci(%d) = %lld\n", n, resultado);
+
+    arquivo = fopen("numero.txt", "a");
+    if (arquivo == NULL) {
+        printf("Erro ao abrir o arquivo numero.txt\n");
+    } else {
+        fprintf(arquivo, "Fibonacci(%d) = %lld\n", n, resultado);
+        fclose(arquivo);
+    }
+
+    printf("\nPressione ENTER para voltar ao menu...");
+    getchar(); // aguarda enter (o buffer já foi limpo)
 }
 
 int main(){
@@ -341,6 +444,10 @@ int main(){
             case 6:
                 exibir_cabecalho("OPÇÃO 6: RAIZ QUADRADA");
                 raiz_quadrada();
+                break;
+            case 8:
+                exibir_cabecalho("OPÇÃO 8: SEQUÊNCIA DE FIBONACCI");
+                calcular_fibonacci();
                 break;
             case 13:
                 exibir_cabecalho("OPÇÃO 13: LISTAR MULTIPLICAÇÕES");
